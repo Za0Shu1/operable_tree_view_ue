@@ -64,12 +64,17 @@ public:
 		UOperableTreeNode* GetParent();
 
 	UFUNCTION(BlueprintPure, Category = "Operable Tree | Tree Data")
+		UOperableTreeNode* GetPre();
+
+	UFUNCTION(BlueprintPure, Category = "Operable Tree | Tree Data")
 		UOperableTreeNode* GetNext();
+
 
 	UFUNCTION(BlueprintPure, Category = "Operable Tree | Tree Data")
 		bool CanExpand();
 
 	void InitData(FTreeData td, TArray<FTreeData> tds);
+	void SetNext(UOperableTreeNode* next_node);
 
 private:
 	TArray<UOperableTreeNode*> leafs;

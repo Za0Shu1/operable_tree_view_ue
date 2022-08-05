@@ -25,6 +25,7 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnLockStateChanged, bool, bLocked);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnEntryDropZoneChanged, EEntryDropZone, DropZoneType);
 
 class UDragItemVisual;
+class UOperableTreeNode;
 UCLASS()
 class OPERABLETREEVIEW_API UOperableTreeEntry : public UUserWidget, public IUserObjectListEntry
 {
@@ -73,9 +74,19 @@ protected:
 	//drag
 	virtual void NativeOnDragDetected(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent, UDragDropOperation*& OutOperation);
 	virtual bool NativeOnDrop(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation);
-
 	virtual void NativeOnDragEnter(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation);
 	virtual void NativeOnDragLeave(const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation);
 	virtual bool NativeOnDragOver(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation);
 	virtual void NativeOnDragCancelled(const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation);
+
+	// user list entry interface override
+	virtual void NativeOnListItemObjectSet(UObject* ListItemObject) override;
+
+private:
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Entry Common", meta = (AllowPrivateAccess = "true"))
+		UOperableTreeNode* CurrentNode;
+
+	EEntryDropZone DropZoneType;
+
+	void CalcNodeData(UOperableTreeNode* DropNode);
 };

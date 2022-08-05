@@ -23,6 +23,21 @@ UOperableTreeNode* UOperableTreeNode::GetParent()
 	return parent;
 }
 
+UOperableTreeNode* UOperableTreeNode::GetPre()
+{
+	if (parent)
+	{
+		for (auto leaf : parent->leafs)
+		{
+			if (leaf->next == this)
+			{
+				return leaf;
+			}
+		}
+	}
+	return nullptr;
+}
+
 UOperableTreeNode* UOperableTreeNode::GetNext()
 {
 	return next;
@@ -71,5 +86,10 @@ void UOperableTreeNode::InitData(FTreeData td, TArray<FTreeData> tds)
 			}
 		}
 	}
+}
+
+void UOperableTreeNode::SetNext(UOperableTreeNode* next_node)
+{
+	next = next_node;
 }
 
