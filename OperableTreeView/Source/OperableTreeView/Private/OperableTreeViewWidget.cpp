@@ -7,7 +7,7 @@ UOperableTreeViewWidget::UOperableTreeViewWidget(const FObjectInitializer& Objec
 	: Super(ObjectInitializer)
 {
 	this->EntryWidgetClass = nullptr;
-	this->EntrySpacing = 5.f;
+	this->EntrySpacing = 0.f;
 	Root = nullptr;
 	this->ObjectType = UOperableTreeNode::StaticClass();// default object
 	this->SetOnGetItemChildren(this, &UOperableTreeViewWidget::OnGetItemChildren);// get children

@@ -10,7 +10,7 @@
  * 
  */
 
-
+class UOperableTreeNode;
 UCLASS()
 class OPERABLETREEVIEW_API UEntryDragDropOperation : public UDragDropOperation
 {
@@ -20,9 +20,6 @@ public:
 	UEntryDragDropOperation();
 
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Style")
-		bool bEnableDrop;
-
-	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Style")
-		FString DisplayName;
+		UOperableTreeNode* Node = nullptr;
 	
 };

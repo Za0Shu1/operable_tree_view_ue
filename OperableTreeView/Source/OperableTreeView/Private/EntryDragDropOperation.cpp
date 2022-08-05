@@ -2,9 +2,10 @@
 
 
 #include "EntryDragDropOperation.h"
+#include "OperableTreeNode.h"
+
 
 UEntryDragDropOperation::UEntryDragDropOperation()
 {
-	DisplayName = "";
-	bEnableDrop = false;
+
 }
