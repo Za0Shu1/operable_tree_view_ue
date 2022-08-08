@@ -15,7 +15,32 @@ FTreeData UOperableTreeNode::GetData()
 
 TArray<UOperableTreeNode*> UOperableTreeNode::GetLeafs()
 {
-	return leafs;
+	TArray<UOperableTreeNode*> ordered_leafs;
+
+	// get head node
+	UOperableTreeNode* _head = nullptr;
+	for (auto leaf : leafs)
+	{
+		if (leaf->GetPre() == nullptr)
+		{
+			_head = leaf;
+			break;
+		}
+	}
+	if (_head)
+	{
+		ordered_leafs.Emplace(_head);
+		UOperableTreeNode* _next = _head->GetNext();
+
+		// insert node by order
+		while (_next)
+		{
+			ordered_leafs.Emplace(_next);
+			_next = _next->GetNext();
+		}
+	}
+	
+	return ordered_leafs;
 }
 
 UOperableTreeNode* UOperableTreeNode::GetParent()
@@ -41,11 +66,6 @@ UOperableTreeNode* UOperableTreeNode::GetPre()
 UOperableTreeNode* UOperableTreeNode::GetNext()
 {
 	return next;
-}
-
-bool UOperableTreeNode::CanExpand()
-{
-	return leafs.Num() > 0;
 }
 
 // Init Node Data and leafs
@@ -91,5 +111,15 @@ void UOperableTreeNode::InitData(FTreeData td, TArray<FTreeData> tds)
 void UOperableTreeNode::SetNext(UOperableTreeNode* next_node)
 {
 	next = next_node;
+}
+
+void UOperableTreeNode::UpdateTree()
+{
+	UOperableTreeNode* root = this;
+	while (root->GetParent())
+	{
+		root = root->GetParent();
+	}
+	root->OnTreeNodeUpdate.Broadcast();
 }
 

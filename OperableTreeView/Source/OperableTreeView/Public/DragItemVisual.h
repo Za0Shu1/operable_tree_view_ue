@@ -9,6 +9,9 @@
 /**
  * 
  */
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnStateChanged);
+
 UCLASS()
 class OPERABLETREEVIEW_API UDragItemVisual : public UUserWidget
 {
@@ -23,5 +26,6 @@ public:
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Drag Visual")
 		FString DisplayName;
 
-	
+	UPROPERTY(BlueprintAssignable, Category = "Drag Visual")
+		FOnStateChanged OnStateChanged;
 };

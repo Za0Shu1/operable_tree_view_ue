@@ -18,6 +18,7 @@ void UOperableTreeViewWidget::InitRoot(TArray<FTreeData> data)
 {
 	// Create another tree to store all trees
 	Root = NewObject<UOperableTreeNode>(this);
+	Root->OnTreeNodeUpdate.AddDynamic(this, &UOperableTreeViewWidget::UpdateTree);
 	FTreeData root_data;
 	for (FTreeData td : data)
 	{
@@ -28,6 +29,16 @@ void UOperableTreeViewWidget::InitRoot(TArray<FTreeData> data)
 		}
 	}
 	Root->InitData(root_data, data);
+	for (UOperableTreeNode* leaf : Root->GetLeafs())
+	{
+		this->AddItem(leaf);
+	}
+}
+
+
+void UOperableTreeViewWidget::UpdateTree()
+{
+	this->ClearListItems();
 	for (UOperableTreeNode* leaf : Root->GetLeafs())
 	{
 		this->AddItem(leaf);

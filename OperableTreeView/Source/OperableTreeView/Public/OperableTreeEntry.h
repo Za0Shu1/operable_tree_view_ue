@@ -10,6 +10,7 @@
 /**
  * 
  */
+DECLARE_LOG_CATEGORY_EXTERN(LogTreeEntry,Log,All);
 
 UENUM(BlueprintType)
 enum class EEntryDropZone : uint8
@@ -62,14 +63,14 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Operable Tree | Entry | Common")
 		void ToggleLock();
 
-	UFUNCTION(BlueprintNativeEvent, Category = "Operable Tree | Entry | Common")
+	UFUNCTION(BlueprintNativeEvent, Category = "Operable Tree")
 		bool CanDragOnto();
 
-
+	UFUNCTION(BlueprintPure, Category = "Operable Tree | Entry | Common")
+		bool CanExpand();
 
 protected:
 	virtual FReply NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent);
-
 
 	//drag
 	virtual void NativeOnDragDetected(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent, UDragDropOperation*& OutOperation);

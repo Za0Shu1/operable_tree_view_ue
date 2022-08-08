@@ -8,6 +8,8 @@
 #include "DragItemVisual.h"
 #include "OperableTreeNode.h"
 
+DEFINE_LOG_CATEGORY(LogTreeEntry);
+
 UOperableTreeEntry::UOperableTreeEntry(const FObjectInitializer& ObjectInitializer)
 	:Super(ObjectInitializer)
 {
@@ -33,7 +35,16 @@ void UOperableTreeEntry::ToggleLock()
 
 bool UOperableTreeEntry::CanDragOnto_Implementation()
 {
-	return true;
+	return false;
+}
+
+bool UOperableTreeEntry::CanExpand()
+{
+	if (CurrentNode)
+	{
+		return CurrentNode->GetLeafs().Num() > 0;
+	}
+	return false;
 }
 
 FReply UOperableTreeEntry::NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent)
@@ -77,10 +88,18 @@ bool UOperableTreeEntry::NativeOnDrop(const FGeometry& InGeometry, const FDragDr
 			// move to self is meaningless
 			if (DropNode != CurrentNode)
 			{
-				CalcNodeData(DropNode);
-				DropZoneType = EEntryDropZone::None;
-				OnEntryDropZoneChanged.Broadcast(EEntryDropZone::None);
-				return true;
+				if (DropZoneType != EEntryDropZone::None)
+				{
+					CalcNodeData(DropNode);
+					DropZoneType = EEntryDropZone::None;
+					OnEntryDropZoneChanged.Broadcast(EEntryDropZone::None);
+					return true;
+				}
+				else
+				{
+					return false;
+				}
+				
 			}
 		}
 	}
@@ -103,6 +122,9 @@ void UOperableTreeEntry::NativeOnDragLeave(const FDragDropEvent& InDragDropEvent
 
 bool UOperableTreeEntry::NativeOnDragOver(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation)
 {
+	UEntryDragDropOperation* DropItemOperation = Cast<UEntryDragDropOperation>(InOperation);
+	
+	// calc mouse location in this item
 	const FVector2D LocalPointerPos = InGeometry.AbsoluteToLocal(InDragDropEvent.GetScreenSpacePosition());
 	const FVector2D LocalSize = InGeometry.GetLocalSize();
 
@@ -110,18 +132,46 @@ bool UOperableTreeEntry::NativeOnDragOver(const FGeometry& InGeometry, const FDr
 	float PointPos = LocalPointerPos.Y;
 	if (PointPos < ZoneBoundarySu)
 	{
+		// can always move above
+		UDragItemVisual* DragVisual = Cast<UDragItemVisual>(DropItemOperation->DefaultDragVisual);
+		if (DragVisual)
+		{
+			DragVisual->bEnable = true;
+			DragVisual->OnStateChanged.Broadcast();
+		}
+
 		DropZoneType = EEntryDropZone::AboverItem;
 		OnEntryDropZoneChanged.Broadcast(EEntryDropZone::AboverItem);
 	}
 	else if (PointPos > LocalSize.Y - ZoneBoundarySu)
 	{
+		// can always move below
+		UDragItemVisual* DragVisual = Cast<UDragItemVisual>(DropItemOperation->DefaultDragVisual);
+		if (DragVisual)
+		{
+			DragVisual->bEnable = true;
+			DragVisual->OnStateChanged.Broadcast();
+		}
+
 		DropZoneType = EEntryDropZone::BelowItem;
 		OnEntryDropZoneChanged.Broadcast(EEntryDropZone::BelowItem);
 	}
 	else
 	{
-		DropZoneType = EEntryDropZone::OntoItem;
-		OnEntryDropZoneChanged.Broadcast(EEntryDropZone::OntoItem);
+		// calc if this item can contains children
+		UDragItemVisual* DragVisual = Cast<UDragItemVisual>(DropItemOperation->DefaultDragVisual);
+		if (DragVisual)
+		{
+			DragVisual->bEnable = CanDragOnto();
+			DragVisual->OnStateChanged.Broadcast();
+			DropZoneType = EEntryDropZone::OntoItem;
+			OnEntryDropZoneChanged.Broadcast(EEntryDropZone::OntoItem);
+		}
+		else
+		{
+			DropZoneType = EEntryDropZone::None;
+			OnEntryDropZoneChanged.Broadcast(EEntryDropZone::None);
+		}
 	}
 	return Super::NativeOnDragOver(InGeometry,InDragDropEvent,InOperation);
 }
@@ -182,6 +232,5 @@ void UOperableTreeEntry::CalcNodeData(UOperableTreeNode* DropNode)
 		}
 	}
 
-		
-	
+	DropNode->UpdateTree();
 }

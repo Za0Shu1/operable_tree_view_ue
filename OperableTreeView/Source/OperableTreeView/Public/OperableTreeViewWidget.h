@@ -29,6 +29,11 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Operable Tree | Init")
 		void InitRoot(TArray<FTreeData> data);
 
+	UFUNCTION(BlueprintCallable, Category = "Operable Tree | Tree")
+		void UpdateTree();
+
+protected:
+
 private:
 	void OnGetItemChildren(UObject* Item, TArray<UObject*>& Children);
 };

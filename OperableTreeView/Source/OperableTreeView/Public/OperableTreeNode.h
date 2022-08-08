@@ -9,6 +9,8 @@
  * 
  */
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnTreeNodeUpdate);
+
 USTRUCT(BlueprintType)
 struct FTreeData
 {
@@ -69,12 +71,12 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Operable Tree | Tree Data")
 		UOperableTreeNode* GetNext();
 
-
-	UFUNCTION(BlueprintPure, Category = "Operable Tree | Tree Data")
-		bool CanExpand();
+	UPROPERTY(BlueprintAssignable,Category = "Callback")
+		FOnTreeNodeUpdate OnTreeNodeUpdate;
 
 	void InitData(FTreeData td, TArray<FTreeData> tds);
 	void SetNext(UOperableTreeNode* next_node);
+	void UpdateTree();
 
 private:
 	TArray<UOperableTreeNode*> leafs;
