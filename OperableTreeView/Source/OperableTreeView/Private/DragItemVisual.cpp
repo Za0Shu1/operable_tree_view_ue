@@ -7,5 +7,5 @@ UDragItemVisual::UDragItemVisual(const FObjectInitializer& ObjectInitializer)
 	:Super(ObjectInitializer)
 {
 	bEnable = false;
-	DisplayName = "DisplayName";
+	DisplayText = "DisplayName";
 }

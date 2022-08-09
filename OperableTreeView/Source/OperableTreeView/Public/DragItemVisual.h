@@ -24,7 +24,7 @@ public:
 		bool bEnable;
 
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Drag Visual")
-		FString DisplayName;
+		FString DisplayText;
 
 	UPROPERTY(BlueprintAssignable, Category = "Drag Visual")
 		FOnStateChanged OnStateChanged;

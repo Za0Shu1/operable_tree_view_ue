@@ -65,7 +65,7 @@ void UOperableTreeEntry::NativeOnDragDetected(const FGeometry& InGeometry, const
 	if (DragVisual)
 	{
 		DragVisual->bEnable = CanDragOnto();
-		DragVisual->DisplayName = DisplayName;
+		DragVisual->DisplayText = DisplayName;
 	}
 
 	// todo parse node data
@@ -90,9 +90,9 @@ bool UOperableTreeEntry::NativeOnDrop(const FGeometry& InGeometry, const FDragDr
 			{
 				if (DropZoneType != EEntryDropZone::None)
 				{
+					// means can drop
 					CalcNodeData(DropNode);
-					DropZoneType = EEntryDropZone::None;
-					OnEntryDropZoneChanged.Broadcast(EEntryDropZone::None);
+					UpdateDropZone(EEntryDropZone::None);
 					return true;
 				}
 				else
@@ -103,8 +103,7 @@ bool UOperableTreeEntry::NativeOnDrop(const FGeometry& InGeometry, const FDragDr
 			}
 		}
 	}
-	DropZoneType = EEntryDropZone::None;
-	OnEntryDropZoneChanged.Broadcast(EEntryDropZone::None);
+	UpdateDropZone(EEntryDropZone::None);
 	return false;
 }
 
@@ -116,14 +115,48 @@ void UOperableTreeEntry::NativeOnDragEnter(const FGeometry& InGeometry, const FD
 void UOperableTreeEntry::NativeOnDragLeave(const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation)
 {
 	Super::NativeOnDragLeave(InDragDropEvent, InOperation);
-	DropZoneType = EEntryDropZone::None;
-	OnEntryDropZoneChanged.Broadcast(EEntryDropZone::None);
+	UpdateDropZone(EEntryDropZone::None);
 }
 
 bool UOperableTreeEntry::NativeOnDragOver(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation)
 {
 	UEntryDragDropOperation* DropItemOperation = Cast<UEntryDragDropOperation>(InOperation);
 	
+	if (DropItemOperation)
+	{
+		UOperableTreeNode* DropNode = DropItemOperation->Node;
+		if (DropNode)
+		{
+			// drag to self, meaningless
+			if (DropNode == CurrentNode)
+			{
+				UDragItemVisual* DragVisual = Cast<UDragItemVisual>(DropItemOperation->DefaultDragVisual);
+				if (DragVisual)
+				{
+					DragVisual->bEnable = false;
+					DragVisual->DisplayText = DisplayName;
+					DragVisual->OnStateChanged.Broadcast();
+				}
+				UpdateDropZone(EEntryDropZone::None);
+				return Super::NativeOnDragOver(InGeometry, InDragDropEvent, InOperation);;
+			}
+
+			// drag to it's child,disable operation
+			else if (CurrentNode->IsChildOf(DropNode))
+			{
+				UDragItemVisual* DragVisual = Cast<UDragItemVisual>(DropItemOperation->DefaultDragVisual);
+				if (DragVisual)
+				{
+					DragVisual->bEnable = false;
+					DragVisual->DisplayText = FString("can't make widget a child of its children");
+					DragVisual->OnStateChanged.Broadcast();
+				}
+				UpdateDropZone(EEntryDropZone::None);
+				return Super::NativeOnDragOver(InGeometry, InDragDropEvent, InOperation);;
+			}
+		}
+	}
+
 	// calc mouse location in this item
 	const FVector2D LocalPointerPos = InGeometry.AbsoluteToLocal(InDragDropEvent.GetScreenSpacePosition());
 	const FVector2D LocalSize = InGeometry.GetLocalSize();
@@ -137,11 +170,11 @@ bool UOperableTreeEntry::NativeOnDragOver(const FGeometry& InGeometry, const FDr
 		if (DragVisual)
 		{
 			DragVisual->bEnable = true;
+			DragVisual->DisplayText = DisplayName;
 			DragVisual->OnStateChanged.Broadcast();
 		}
 
-		DropZoneType = EEntryDropZone::AboverItem;
-		OnEntryDropZoneChanged.Broadcast(EEntryDropZone::AboverItem);
+		UpdateDropZone(EEntryDropZone::AboverItem);
 	}
 	else if (PointPos > LocalSize.Y - ZoneBoundarySu)
 	{
@@ -150,11 +183,11 @@ bool UOperableTreeEntry::NativeOnDragOver(const FGeometry& InGeometry, const FDr
 		if (DragVisual)
 		{
 			DragVisual->bEnable = true;
+			DragVisual->DisplayText = DisplayName;
 			DragVisual->OnStateChanged.Broadcast();
 		}
 
-		DropZoneType = EEntryDropZone::BelowItem;
-		OnEntryDropZoneChanged.Broadcast(EEntryDropZone::BelowItem);
+		UpdateDropZone(EEntryDropZone::BelowItem);
 	}
 	else
 	{
@@ -163,14 +196,13 @@ bool UOperableTreeEntry::NativeOnDragOver(const FGeometry& InGeometry, const FDr
 		if (DragVisual)
 		{
 			DragVisual->bEnable = CanDragOnto();
+			DragVisual->DisplayText = CanDragOnto() ? DisplayName : FString("widget can't accept additional children");
 			DragVisual->OnStateChanged.Broadcast();
-			DropZoneType = EEntryDropZone::OntoItem;
-			OnEntryDropZoneChanged.Broadcast(EEntryDropZone::OntoItem);
+			UpdateDropZone(EEntryDropZone::OntoItem);
 		}
 		else
 		{
-			DropZoneType = EEntryDropZone::None;
-			OnEntryDropZoneChanged.Broadcast(EEntryDropZone::None);
+			UpdateDropZone(EEntryDropZone::None);
 		}
 	}
 	return Super::NativeOnDragOver(InGeometry,InDragDropEvent,InOperation);
@@ -179,8 +211,7 @@ bool UOperableTreeEntry::NativeOnDragOver(const FGeometry& InGeometry, const FDr
 void UOperableTreeEntry::NativeOnDragCancelled(const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation)
 {
 	Super::NativeOnDragCancelled(InDragDropEvent, InOperation);
-	OnEntryDropZoneChanged.Broadcast(EEntryDropZone::None);
-	DropZoneType = EEntryDropZone::None;
+	UpdateDropZone(EEntryDropZone::None);
 }
 
 void UOperableTreeEntry::NativeOnListItemObjectSet(UObject* ListItemObject)
@@ -194,43 +225,72 @@ void UOperableTreeEntry::CalcNodeData(UOperableTreeNode* DropNode)
 {
 	if (!DropNode) return;
 
-	// have same parent
-	if (DropNode->GetParent() == CurrentNode->GetParent())
+	switch (DropZoneType)
 	{
-		switch (DropZoneType)
-		{
 		case EEntryDropZone::None:
 			break;
 		case EEntryDropZone::AboverItem:
+		{
+			// order does not change
+			if (DropNode->GetNext() == CurrentNode) return;
+
+			UOperableTreeNode* dropParent = DropNode->GetParent();
+			if (dropParent)
 			{
-				if (DropNode->GetNext() == CurrentNode) return;// order does not change
-
-				//Current Item
-				UOperableTreeNode* self_pre = CurrentNode->GetPre();
-				UOperableTreeNode* self_next = CurrentNode->GetNext();
-
-				//Drop Item
-				UOperableTreeNode* drop_pre = DropNode->GetPre();
-				UOperableTreeNode* drop_next = DropNode->GetNext();
-
-				DropNode->SetNext(CurrentNode);
-				CurrentNode->SetNext(drop_next);
-				if (self_pre)
+				if (dropParent->RemoveChild(DropNode)) 
 				{
-					self_pre->SetNext(DropNode);
+					UOperableTreeNode* curParent = CurrentNode->GetParent();
+					if (curParent)
+					{
+						curParent->InsertChild(DropNode, CurrentNode->GetPre());
+						DropNode->UpdateTree();
+						return;
+					}
 				}
 			}
 			break;
+		}
 		case EEntryDropZone::OntoItem:
-			break;
-		case EEntryDropZone::BelowItem:
-			if (CurrentNode->GetNext() == DropNode) return; // order does not change
+		{
+			// already is its children
+			if (DropNode->GetParent() == CurrentNode)  return;
 
-			break;
-		default:
+			UOperableTreeNode* dropParent = DropNode->GetParent();
+			if (dropParent)
+			{
+				if (dropParent->RemoveChild(DropNode))
+				{
+					CurrentNode->AppendChild(DropNode);
+					DropNode->UpdateTree();
+					return;
+				}
+			}
 			break;
 		}
+		case EEntryDropZone::BelowItem:
+		{
+			// order does not change
+			if (CurrentNode->GetNext() == DropNode)  return;
+			
+			UOperableTreeNode* dropParent = DropNode->GetParent();
+			if (dropParent)
+			{
+				if (dropParent->RemoveChild(DropNode))
+				{
+					UOperableTreeNode* curParent = CurrentNode->GetParent();
+					if (curParent)
+					{
+						curParent->InsertChild(DropNode, CurrentNode);
+						DropNode->UpdateTree();
+						return;
+					}
+				}
+			}
+			break;
+		}
+			
+		default:
+			break;
 	}
-
-	DropNode->UpdateTree();
 }
+	

@@ -8,7 +8,7 @@
 /**
  * 
  */
-
+DECLARE_LOG_CATEGORY_EXTERN(LogTreeNode, Log, All);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnTreeNodeUpdate);
 
 USTRUCT(BlueprintType)
@@ -30,19 +30,20 @@ public:
 		FString displayName;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "OperableTreeView")
-		TArray<int32> ChildIndex;// 孩子表示法
+		TArray<int32> ChildIndex;
 
 public:
 	FTreeData():index(-1),level(0),icon(nullptr),displayName(""){}
 
 	void PrintData()
 	{
+		if (index < 0) return;
 		FString childs = "";
 		for (int32 child : ChildIndex)
 		{
 			childs += FString::FromInt(child) + ",";
 		}
-		UE_LOG(LogTemp,Display,TEXT("index:%d;level:%d;display name:%s;childs:%s"),index,level,*displayName,*childs)
+		UE_LOG(LogTreeNode,Display,TEXT("index:%d===level:%d===display name:%s===childs:%s"),index,level,*displayName,*childs)
 	}
 
 };
@@ -74,10 +75,15 @@ public:
 	UPROPERTY(BlueprintAssignable,Category = "Callback")
 		FOnTreeNodeUpdate OnTreeNodeUpdate;
 
+	bool InsertChild(UOperableTreeNode* newNode, UOperableTreeNode* preNode);
+	bool RemoveChild(UOperableTreeNode* removeNode);
+	bool AppendChild(UOperableTreeNode* newNode);
+	UOperableTreeNode* GetChildHead();
 	void InitData(FTreeData td, TArray<FTreeData> tds);
 	void SetNext(UOperableTreeNode* next_node);
 	void UpdateTree();
-
+	void PrintLeafs(FString progress);
+	bool IsChildOf(UOperableTreeNode* compareNode);
 private:
 	TArray<UOperableTreeNode*> leafs;
 

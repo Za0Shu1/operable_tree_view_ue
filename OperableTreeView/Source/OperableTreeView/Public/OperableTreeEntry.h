@@ -78,6 +78,13 @@ protected:
 	virtual void NativeOnDragEnter(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation);
 	virtual void NativeOnDragLeave(const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation);
 	virtual bool NativeOnDragOver(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation);
+
+	inline void UpdateDropZone(EEntryDropZone NewZoneType)
+	{
+		DropZoneType = NewZoneType;
+		OnEntryDropZoneChanged.Broadcast(NewZoneType);
+	}
+
 	virtual void NativeOnDragCancelled(const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation);
 
 	// user list entry interface override
