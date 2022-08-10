@@ -20,6 +20,8 @@ void UOperableTreeViewWidget::InitRoot(TArray<FTreeData> data)
 	Root = NewObject<UOperableTreeNode>(this);
 	Root->OnTreeNodeUpdate.AddDynamic(this, &UOperableTreeViewWidget::UpdateTree);
 	FTreeData root_data;
+	root_data.index = -1;
+	root_data.level = -1;
 	for (FTreeData td : data)
 	{
 		// trees

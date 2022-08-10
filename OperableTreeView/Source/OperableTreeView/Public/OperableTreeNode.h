@@ -33,7 +33,7 @@ public:
 		TArray<int32> ChildIndex;
 
 public:
-	FTreeData():index(-1),level(0),icon(nullptr),displayName(""){}
+	FTreeData():index(-1),level(-1),icon(nullptr),displayName(""){}
 
 	void PrintData()
 	{
@@ -81,8 +81,10 @@ public:
 	UOperableTreeNode* GetChildHead();
 	void InitData(FTreeData td, TArray<FTreeData> tds);
 	void SetNext(UOperableTreeNode* next_node);
+	void UpdateNodeLevel(int32 new_level);
 	void UpdateTree();
 	void PrintLeafs(FString progress);
+	void PrintTree();
 	bool IsChildOf(UOperableTreeNode* compareNode);
 private:
 	TArray<UOperableTreeNode*> leafs;

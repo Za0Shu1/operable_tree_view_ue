@@ -74,15 +74,21 @@ bool UOperableTreeNode::InsertChild(UOperableTreeNode* newNode, UOperableTreeNod
 	PrintLeafs("Before Insert Child...");
 	if (preNode)
 	{
+		// get insert position
+		int32 insert_pos = data.ChildIndex.IndexOfByKey(preNode->next->data.index);
 		newNode->SetNext(preNode->next);
 		preNode->SetNext(newNode);
+		data.ChildIndex.Insert(newNode->data.index, insert_pos);
 	}
 	else
 	{
 		UOperableTreeNode* head = GetChildHead();
 		newNode->SetNext(head);
+		// insert at position 0
+		data.ChildIndex.Insert(newNode->data.index,0);
 	}
 	leafs.Add(newNode);
+	newNode->UpdateNodeLevel(data.level + 1);
 	newNode->parent = this;
 	PrintLeafs("After Insert Child...");
 	return true;
@@ -99,6 +105,7 @@ bool UOperableTreeNode::RemoveChild(UOperableTreeNode* removeNode)
 	}
 	leafs.Remove(removeNode);
 	removeNode->parent = nullptr;
+	data.ChildIndex.Remove(removeNode->data.index);
 	PrintLeafs("After Remove Child...");
 	return true;
 }
@@ -121,6 +128,8 @@ bool UOperableTreeNode::AppendChild(UOperableTreeNode* newNode)
 		{
 			node->next = newNode;
 			leafs.Add(newNode);
+			newNode->UpdateNodeLevel(data.level + 1);
+			data.ChildIndex.Emplace(newNode->data.index);
 			newNode->parent = this;
 			PrintLeafs("After Append Child...");
 			return true;
@@ -189,6 +198,16 @@ void UOperableTreeNode::SetNext(UOperableTreeNode* next_node)
 	next = next_node;
 }
 
+void UOperableTreeNode::UpdateNodeLevel(int32 new_level)
+{
+	data.level = new_level;
+	// update child level recursively
+	for (auto leaf : leafs)
+	{
+		leaf->UpdateNodeLevel(new_level + 1);
+	}
+}
+
 void UOperableTreeNode::UpdateTree()
 {
 	UOperableTreeNode* root = this;
@@ -196,6 +215,8 @@ void UOperableTreeNode::UpdateTree()
 	{
 		root = root->parent;
 	}
+	UE_LOG(LogTreeNode, Warning, TEXT("=====Tree Data Update Finished====="));
+	root->PrintTree();
 	root->OnTreeNodeUpdate.Broadcast();
 }
 
@@ -212,6 +233,15 @@ void UOperableTreeNode::PrintLeafs(FString progress)
 	{
 		UE_LOG(LogTreeNode, Display, TEXT("%s"),*(head->data.displayName));
 		head = head->next;
+	}
+}
+
+void UOperableTreeNode::PrintTree()
+{
+	UE_LOG(LogTreeNode, Display, TEXT("Node Name : %s"),*data.displayName);
+	for (auto a : GetLeafs())
+	{
+		a->PrintTree();
 	}
 }
 
