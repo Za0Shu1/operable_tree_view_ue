@@ -23,15 +23,22 @@ UOperableTreeEntry::UOperableTreeEntry(const FObjectInitializer& ObjectInitializ
 void UOperableTreeEntry::ToggleVisiblity()
 {
 	bVisible = !bVisible;
+	CurrentNode->GetData().bVisible = bVisible;
 	OnEntryVisibilityChanged.Broadcast(bVisible);
 }
 
 void UOperableTreeEntry::ToggleLock()
 {
 	bLocked = !bLocked;
+	CurrentNode->GetData().bLocked = bLocked;
 	OnEntryLockStateChanged.Broadcast(bLocked);
 }
 
+
+void UOperableTreeEntry::ToggleExpand(bool bIsExpanded)
+{
+	CurrentNode->GetData().bIsExpanded = bIsExpanded;
+}
 
 bool UOperableTreeEntry::CanDragOnto_Implementation()
 {
@@ -99,7 +106,6 @@ bool UOperableTreeEntry::NativeOnDrop(const FGeometry& InGeometry, const FDragDr
 				{
 					return false;
 				}
-				
 			}
 		}
 	}

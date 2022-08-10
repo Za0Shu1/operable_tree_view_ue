@@ -32,8 +32,18 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "OperableTreeView")
 		TArray<int32> ChildIndex;
 
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "OperableTreeView")
+		bool bIsExpanded;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "OperableTreeView")
+		bool bVisible;
+
+	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "OperableTreeView")
+		bool bLocked;
+
 public:
-	FTreeData():index(-1),level(-1),icon(nullptr),displayName(""){}
+	FTreeData():index(-1),level(-1),icon(nullptr),displayName(""),
+		ChildIndex({}), bIsExpanded(false), bVisible(false), bLocked(false) {}
 
 	void PrintData()
 	{
@@ -58,7 +68,7 @@ public:
 
 public:
 	UFUNCTION(BlueprintPure, Category = "Operable Tree | Tree Data")
-		FTreeData GetData();
+		FTreeData& GetData();
 
 	UFUNCTION(BlueprintPure, Category = "Operable Tree | Tree Data")
 		TArray<UOperableTreeNode*> GetLeafs();

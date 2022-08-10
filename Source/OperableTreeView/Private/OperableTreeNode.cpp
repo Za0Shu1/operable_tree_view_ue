@@ -10,7 +10,7 @@ UOperableTreeNode::UOperableTreeNode()
 	
 }
 
-FTreeData UOperableTreeNode::GetData()
+FTreeData& UOperableTreeNode::GetData()
 {
 	return data;
 }
@@ -75,7 +75,15 @@ bool UOperableTreeNode::InsertChild(UOperableTreeNode* newNode, UOperableTreeNod
 	if (preNode)
 	{
 		// get insert position
-		int32 insert_pos = data.ChildIndex.IndexOfByKey(preNode->next->data.index);
+		int32 insert_pos = 0;
+		if(preNode->next)
+		{
+			insert_pos = data.ChildIndex.IndexOfByKey(preNode->next->data.index);
+		}
+		else
+		{
+			insert_pos = data.ChildIndex.IndexOfByKey(preNode->data.index) + 1;
+		}
 		newNode->SetNext(preNode->next);
 		preNode->SetNext(newNode);
 		data.ChildIndex.Insert(newNode->data.index, insert_pos);

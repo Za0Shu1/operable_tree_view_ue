@@ -63,6 +63,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Operable Tree | Entry | Common")
 		void ToggleLock();
 
+	UFUNCTION(BlueprintCallable, Category = "Operable Tree | Entry | Common")
+		void ToggleExpand(bool bIsExpanded);
+
 	UFUNCTION(BlueprintNativeEvent, Category = "Operable Tree")
 		bool CanDragOnto();
 

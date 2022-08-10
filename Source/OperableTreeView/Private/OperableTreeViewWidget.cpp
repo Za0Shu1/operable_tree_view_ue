@@ -37,7 +37,6 @@ void UOperableTreeViewWidget::InitRoot(TArray<FTreeData> data)
 	}
 }
 
-
 void UOperableTreeViewWidget::UpdateTree()
 {
 	this->ClearListItems();
