@@ -198,7 +198,7 @@ bool UOperableTreeEntry::NativeOnDragOver(const FGeometry& InGeometry, const FDr
 			DragVisual->bEnable = CanDragOnto();
 			DragVisual->DisplayText = CanDragOnto() ? DisplayName : FString("widget can't accept additional children");
 			DragVisual->OnStateChanged.Broadcast();
-			UpdateDropZone(EEntryDropZone::OntoItem);
+			UpdateDropZone(CanDragOnto() ? EEntryDropZone::OntoItem : EEntryDropZone::None);
 		}
 		else
 		{
