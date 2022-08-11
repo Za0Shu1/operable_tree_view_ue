@@ -7,6 +7,7 @@
 #include "Blueprint/WidgetBlueprintLibrary.h"
 #include "DragItemVisual.h"
 #include "OperableTreeNode.h"
+#include "OperableTreeViewWidget.h"
 
 DEFINE_LOG_CATEGORY(LogTreeEntry);
 
@@ -35,8 +36,18 @@ void UOperableTreeEntry::ToggleLock()
 }
 
 
-void UOperableTreeEntry::ToggleExpand(bool bIsExpanded)
+void UOperableTreeEntry::ToggleExpand()
 {
+	UOperableTreeViewWidget* tree = Cast<UOperableTreeViewWidget>(UUserListEntryLibrary::GetOwningListView(this));
+	if (tree)
+	{
+		tree->SetItemExpansion(CurrentNode, !bIsExpanded);
+	}
+}
+
+void UOperableTreeEntry::UpdateExpand(bool bExpanded)
+{
+	bIsExpanded = bExpanded;
 	CurrentNode->GetData().bIsExpanded = bIsExpanded;
 }
 
@@ -224,6 +235,10 @@ void UOperableTreeEntry::NativeOnListItemObjectSet(UObject* ListItemObject)
 {
 	if (!ListItemObject) return;
 	CurrentNode = Cast<UOperableTreeNode>(ListItemObject);
+	if (CurrentNode)
+	{
+		DisplayName = CurrentNode->GetData().displayName;
+	}
 	Execute_OnListItemObjectSet(Cast<UObject>(this), ListItemObject);
 }
 
@@ -248,8 +263,10 @@ void UOperableTreeEntry::CalcNodeData(UOperableTreeNode* DropNode)
 					UOperableTreeNode* curParent = CurrentNode->GetParent();
 					if (curParent)
 					{
-						curParent->InsertChild(DropNode, CurrentNode->GetPre());
-						DropNode->UpdateTree();
+						if (curParent->InsertChild(DropNode, CurrentNode->GetPre()))
+						{
+							DropNode->UpdateTree();
+						}
 						return;
 					}
 				}
@@ -266,8 +283,10 @@ void UOperableTreeEntry::CalcNodeData(UOperableTreeNode* DropNode)
 			{
 				if (dropParent->RemoveChild(DropNode))
 				{
-					CurrentNode->AppendChild(DropNode);
-					DropNode->UpdateTree();
+					if (CurrentNode->AppendChild(DropNode))
+					{
+						DropNode->UpdateTree();
+					}
 					return;
 				}
 			}
@@ -286,8 +305,10 @@ void UOperableTreeEntry::CalcNodeData(UOperableTreeNode* DropNode)
 					UOperableTreeNode* curParent = CurrentNode->GetParent();
 					if (curParent)
 					{
-						curParent->InsertChild(DropNode, CurrentNode);
-						DropNode->UpdateTree();
+						if (curParent->InsertChild(DropNode, CurrentNode))
+						{
+							DropNode->UpdateTree();
+						}
 						return;
 					}
 				}

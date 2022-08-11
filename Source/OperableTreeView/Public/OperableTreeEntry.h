@@ -41,6 +41,9 @@ public:
 	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Entry Common")
 		bool bLocked = false;
 
+	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Entry Common")
+		bool bIsExpanded = false;
+
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Entry Common")
 		FString DisplayName = "";
 
@@ -64,13 +67,19 @@ public:
 		void ToggleLock();
 
 	UFUNCTION(BlueprintCallable, Category = "Operable Tree | Entry | Common")
-		void ToggleExpand(bool bIsExpanded);
+		void ToggleExpand();
+
+	UFUNCTION(BlueprintCallable, Category = "Operable Tree | Entry | Common")
+		void UpdateExpand(bool bExpanded);
 
 	UFUNCTION(BlueprintNativeEvent, Category = "Operable Tree")
 		bool CanDragOnto();
 
 	UFUNCTION(BlueprintPure, Category = "Operable Tree | Entry | Common")
 		bool CanExpand();
+
+	UFUNCTION(BlueprintImplementableEvent, Category = "Operable Tree")
+		void UpdateEntry();
 
 protected:
 	virtual FReply NativeOnMouseButtonDown(const FGeometry& InGeometry, const FPointerEvent& InMouseEvent);

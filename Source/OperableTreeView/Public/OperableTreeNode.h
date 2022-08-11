@@ -53,7 +53,8 @@ public:
 		{
 			childs += FString::FromInt(child) + ",";
 		}
-		UE_LOG(LogTreeNode,Display,TEXT("index:%d===level:%d===display name:%s===childs:%s"),index,level,*displayName,*childs)
+		childs.RemoveFromEnd(",");
+		UE_LOG(LogTreeNode, Display, TEXT("Name(%s) , Level(%d) , Child(%s)."), *displayName, level,*childs);
 	}
 
 };

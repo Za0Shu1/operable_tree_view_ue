@@ -2,6 +2,7 @@
 
 
 #include "OperableTreeViewWidget.h"
+#include "OperableTreeEntry.h"
 
 UOperableTreeViewWidget::UOperableTreeViewWidget(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -44,6 +45,17 @@ void UOperableTreeViewWidget::UpdateTree()
 	{
 		this->AddItem(leaf);
 	}
+	
+	this->SetOnGetItemChildren(this, &UOperableTreeViewWidget::OnGetItemChildren);
+
+	for (auto a : GetListItems())
+	{
+		UOperableTreeEntry* entry = Cast<UOperableTreeEntry>(GetEntryWidgetFromItem(a));
+		if (entry)
+		{
+			entry->UpdateEntry();
+		}
+	}
 }
 
 void UOperableTreeViewWidget::OnGetItemChildren(UObject* Item,TArray<UObject*>& Children)
@@ -53,7 +65,18 @@ void UOperableTreeViewWidget::OnGetItemChildren(UObject* Item,TArray<UObject*>& 
 	{
 		for (auto o : obj->GetLeafs())
 		{
+			UOperableTreeEntry* entry = Cast<UOperableTreeEntry>(GetEntryWidgetFromItem(o));
+			if (entry)
+			{
+				entry->UpdateEntry();
+			}
 			Children.Add(Cast<UObject>(o));
 		}
 	}
 }
+
+void UOperableTreeViewWidget::StoreData()
+{
+	new_data.Empty();
+}
+

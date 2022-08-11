@@ -109,8 +109,9 @@ bool UOperableTreeNode::RemoveChild(UOperableTreeNode* removeNode)
 	PrintLeafs("Before Remove Child...");
 	if (removeNode->GetPre())
 	{
-		removeNode->GetPre()->SetNext(removeNode->next);
+		removeNode->GetPre()->next = removeNode->next;
 	}
+	removeNode->next = nullptr;
 	leafs.Remove(removeNode);
 	removeNode->parent = nullptr;
 	data.ChildIndex.Remove(removeNode->data.index);
@@ -126,6 +127,16 @@ bool UOperableTreeNode::AppendChild(UOperableTreeNode* newNode)
 	if (leafs.Contains(newNode)) return false;
 	PrintLeafs("Before Append Child...");
 	UOperableTreeNode* node = GetChildHead();
+	// is an empty group
+	if(!node)
+	{
+		leafs.Add(newNode);
+		newNode->UpdateNodeLevel(data.level + 1);
+		data.ChildIndex.Emplace(newNode->data.index);
+		newNode->parent = this;
+		PrintLeafs("After Append Child...");
+		return true;
+	}
 	while (node)
 	{
 		if (node->next)
@@ -223,7 +234,7 @@ void UOperableTreeNode::UpdateTree()
 	{
 		root = root->parent;
 	}
-	UE_LOG(LogTreeNode, Warning, TEXT("=====Tree Data Update Finished====="));
+	UE_LOG(LogTreeNode, Warning, TEXT("Printing full tree ..."));
 	root->PrintTree();
 	root->OnTreeNodeUpdate.Broadcast();
 }
@@ -232,21 +243,24 @@ void UOperableTreeNode::PrintLeafs(FString progress)
 {
 	if (!progress.IsEmpty())
 	{
-		UE_LOG(LogTreeNode, Warning, TEXT("In Progress === %s"), *progress);
+		UE_LOG(LogTreeNode, Warning, TEXT("Printing at : %s..."), *progress);
 	}
 
 	UOperableTreeNode* head = GetChildHead();
-	UE_LOG(LogTreeNode, Display, TEXT("(%s) ====Print Child Leafs===="), parent ? *data.displayName : *FString("Root"));
+	UE_LOG(LogTreeNode, Display, TEXT("(%s) Printing Child Leafs..."), parent ? *data.displayName : *FString("Root"));
 	while (head)
 	{
-		UE_LOG(LogTreeNode, Display, TEXT("%s"),*(head->data.displayName));
+		head->data.PrintData();
 		head = head->next;
 	}
 }
 
 void UOperableTreeNode::PrintTree()
 {
-	UE_LOG(LogTreeNode, Display, TEXT("Node Name : %s"),*data.displayName);
+	if (!data.displayName.IsEmpty())
+	{
+		data.PrintData();
+	}
 	for (auto a : GetLeafs())
 	{
 		a->PrintTree();

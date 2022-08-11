@@ -10,7 +10,6 @@
 /**
  * 
  */
-
 UCLASS()
 class OPERABLETREEVIEW_API UOperableTreeViewWidget : public UTreeView
 {
@@ -36,5 +35,8 @@ protected:
 
 private:
 	void OnGetItemChildren(UObject* Item, TArray<UObject*>& Children);
+	void StoreData();
+
+	TArray<FTreeData> new_data;
 };
 	
