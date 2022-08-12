@@ -91,12 +91,49 @@ void UOperableTreeViewWidget::StoreData()
 
 void UOperableTreeViewWidget::AssignItemInfo(int32& Index, FString& DisplayName, EItemType NewItemType)
 {
-	int32 maxIndex = -1;
+	FString typeStr = StaticEnum<EItemType>()->GetNameStringByValue((int64)NewItemType);
+
+	TArray<int32> curIndex;
+	TArray<int32> itemIndex;
 	for (auto data : stored_data)
 	{
-		maxIndex = FMath::Max(maxIndex, data.index);
+		curIndex.Emplace(data.index);
+		if (data.ItemType == NewItemType)
+		{
+			FString left, right;
+			bool bSplit = data.displayName.Split("_", &left, &right);
+			if (bSplit && (left == typeStr) && right.IsNumeric())
+			{
+				itemIndex.Emplace(FCString::Atoi(*right));
+			}
+		}
 	}
-	Index = maxIndex + 1;
+	curIndex.Sort();
+	itemIndex.Sort();
+	// calculate index
+	int32 temp_index = 0;
+	for (int32 i : curIndex)
+	{
+		if (i != temp_index)
+		{
+			break;
+		}
+		++temp_index;
+	}
+	Index = temp_index;
+
+
+	// calculate display name
+	int32 temp_item_index = 0;
+	for (int32 i : itemIndex)
+	{
+		if (i != temp_item_index)
+		{
+			break;
+		}
+		++temp_item_index;
+	}
+	DisplayName = typeStr + "_" + FString::FromInt(temp_item_index);
 }
 
 void UOperableTreeViewWidget::GetNodeData(UOperableTreeNode* node)
