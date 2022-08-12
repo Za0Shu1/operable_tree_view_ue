@@ -35,6 +35,7 @@ void UOperableTreeViewWidget::InitRoot(TArray<FTreeData> data)
 	for (UOperableTreeNode* leaf : Root->GetLeafs())
 	{
 		this->AddItem(leaf);
+		this->SetItemExpansion(leaf, leaf->GetData().bIsExpanded);
 	}
 }
 
@@ -56,6 +57,7 @@ void UOperableTreeViewWidget::UpdateTree()
 			entry->UpdateEntry();
 		}
 	}
+	StoreData();
 }
 
 void UOperableTreeViewWidget::OnGetItemChildren(UObject* Item,TArray<UObject*>& Children)
@@ -70,6 +72,7 @@ void UOperableTreeViewWidget::OnGetItemChildren(UObject* Item,TArray<UObject*>& 
 			{
 				entry->UpdateEntry();
 			}
+			this->SetItemExpansion(o, o->GetData().bIsExpanded);
 			Children.Add(Cast<UObject>(o));
 		}
 	}
@@ -78,5 +81,32 @@ void UOperableTreeViewWidget::OnGetItemChildren(UObject* Item,TArray<UObject*>& 
 void UOperableTreeViewWidget::StoreData()
 {
 	new_data.Empty();
+	for (auto leaf : Root->GetLeafs())
+	{
+		GetNodeData(leaf);
+	}
+	OnTreeDataUpdate.Broadcast(new_data);
+}
+
+void UOperableTreeViewWidget::GetNodeData(UOperableTreeNode* node)
+{
+	FTreeData curData;
+	curData = node->GetData();
+
+	// get childs data
+	TArray<int32> childs;
+	for (auto leaf : node->GetLeafs())
+	{
+		childs.Emplace(leaf->GetData().index);
+	}
+	curData.ChildIndex = childs;
+
+	// add current leaf data
+	new_data.Add(curData);
+
+	for (auto leaf : node->GetLeafs())
+	{
+		GetNodeData(leaf);
+	}
 }
 

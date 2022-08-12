@@ -14,8 +14,6 @@ DEFINE_LOG_CATEGORY(LogTreeEntry);
 UOperableTreeEntry::UOperableTreeEntry(const FObjectInitializer& ObjectInitializer)
 	:Super(ObjectInitializer)
 {
-	bVisible = true;
-	bLocked = false;
 	DisplayName = "";
 	DragItemVisualClass = UDragItemVisual::StaticClass();
 	DropZoneType = EEntryDropZone::None;
@@ -23,32 +21,53 @@ UOperableTreeEntry::UOperableTreeEntry(const FObjectInitializer& ObjectInitializ
 
 void UOperableTreeEntry::ToggleVisiblity()
 {
-	bVisible = !bVisible;
+	bool bVisible = !CurrentNode->GetData().bVisible;
 	CurrentNode->GetData().bVisible = bVisible;
 	OnEntryVisibilityChanged.Broadcast(bVisible);
+	StoreProperties();
 }
 
 void UOperableTreeEntry::ToggleLock()
 {
-	bLocked = !bLocked;
+	bool bLocked = !CurrentNode->GetData().bLocked;
 	CurrentNode->GetData().bLocked = bLocked;
 	OnEntryLockStateChanged.Broadcast(bLocked);
+	UpdateChildsLockState(bLocked);
+	StoreProperties();
 }
 
+
+void UOperableTreeEntry::UpdateChildsLockState(bool bLocked)
+{
+	for (auto node : CurrentNode->GetLeafs())
+	{
+		UOperableTreeViewWidget* tree = Cast<UOperableTreeViewWidget>(UUserListEntryLibrary::GetOwningListView(this));
+		if (tree)
+		{
+			UOperableTreeEntry* entry = Cast<UOperableTreeEntry>(tree->GetEntryWidgetFromItem(node));
+			if (entry)
+			{
+				entry->CurrentNode->GetData().bLocked = bLocked;
+				entry->OnEntryLockStateChanged.Broadcast(bLocked);
+				entry->UpdateChildsLockState(bLocked);
+			}
+		}
+	}
+}
 
 void UOperableTreeEntry::ToggleExpand()
 {
 	UOperableTreeViewWidget* tree = Cast<UOperableTreeViewWidget>(UUserListEntryLibrary::GetOwningListView(this));
 	if (tree)
 	{
-		tree->SetItemExpansion(CurrentNode, !bIsExpanded);
+		tree->SetItemExpansion(CurrentNode, !CurrentNode->GetData().bIsExpanded);
 	}
 }
 
 void UOperableTreeEntry::UpdateExpand(bool bExpanded)
 {
-	bIsExpanded = bExpanded;
-	CurrentNode->GetData().bIsExpanded = bIsExpanded;
+	CurrentNode->GetData().bIsExpanded = bExpanded;
+	StoreProperties();
 }
 
 bool UOperableTreeEntry::CanDragOnto_Implementation()
@@ -318,6 +337,15 @@ void UOperableTreeEntry::CalcNodeData(UOperableTreeNode* DropNode)
 			
 		default:
 			break;
+	}
+}
+
+void UOperableTreeEntry::StoreProperties()
+{
+	UOperableTreeViewWidget* tree = Cast<UOperableTreeViewWidget>(UUserListEntryLibrary::GetOwningListView(this));
+	if (tree)
+	{
+		tree->StoreData();
 	}
 }
 	

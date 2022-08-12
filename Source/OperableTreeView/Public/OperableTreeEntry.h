@@ -35,15 +35,6 @@ class OPERABLETREEVIEW_API UOperableTreeEntry : public UUserWidget, public IUser
 public:
 	UOperableTreeEntry(const FObjectInitializer& ObjectInitializer);
 
-	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Entry Common")
-		bool bVisible = true;
-
-	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Entry Common")
-		bool bLocked = false;
-
-	UPROPERTY(BlueprintReadOnly, VisibleAnywhere, Category = "Entry Common")
-		bool bIsExpanded = false;
-
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "Entry Common")
 		FString DisplayName = "";
 
@@ -65,6 +56,9 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Operable Tree | Entry | Common")
 		void ToggleLock();
+
+	UFUNCTION(BlueprintCallable, Category = "Operable Tree | Entry | Common")
+		void UpdateChildsLockState(bool bLocked);
 
 	UFUNCTION(BlueprintCallable, Category = "Operable Tree | Entry | Common")
 		void ToggleExpand();
@@ -109,4 +103,6 @@ private:
 	EEntryDropZone DropZoneType;
 
 	void CalcNodeData(UOperableTreeNode* DropNode);
+	void StoreProperties();
+
 };
