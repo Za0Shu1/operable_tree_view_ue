@@ -38,12 +38,13 @@ public:
 		void UpdateTree();
 
 	void StoreData();
+	void AssignItemInfo(int32& Index,FString& DisplayName,EItemType NewItemType);
 
 protected:
 
 private:
 	void OnGetItemChildren(UObject* Item, TArray<UObject*>& Children);
 	void GetNodeData(UOperableTreeNode* node);
-	TArray<FTreeData> new_data;
+	TArray<FTreeData> stored_data;
 };
 	

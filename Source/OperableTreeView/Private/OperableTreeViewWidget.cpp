@@ -17,6 +17,7 @@ UOperableTreeViewWidget::UOperableTreeViewWidget(const FObjectInitializer& Objec
 // Init Root Tree
 void UOperableTreeViewWidget::InitRoot(TArray<FTreeData> data)
 {
+	stored_data = data;
 	// Create another tree to store all trees
 	Root = NewObject<UOperableTreeNode>(this);
 	Root->OnTreeNodeUpdate.AddDynamic(this, &UOperableTreeViewWidget::UpdateTree);
@@ -80,12 +81,22 @@ void UOperableTreeViewWidget::OnGetItemChildren(UObject* Item,TArray<UObject*>& 
 
 void UOperableTreeViewWidget::StoreData()
 {
-	new_data.Empty();
+	stored_data.Empty();
 	for (auto leaf : Root->GetLeafs())
 	{
 		GetNodeData(leaf);
 	}
-	OnTreeDataUpdate.Broadcast(new_data);
+	OnTreeDataUpdate.Broadcast(stored_data);
+}
+
+void UOperableTreeViewWidget::AssignItemInfo(int32& Index, FString& DisplayName, EItemType NewItemType)
+{
+	int32 maxIndex = -1;
+	for (auto data : stored_data)
+	{
+		maxIndex = FMath::Max(maxIndex, data.index);
+	}
+	Index = maxIndex + 1;
 }
 
 void UOperableTreeViewWidget::GetNodeData(UOperableTreeNode* node)
@@ -102,7 +113,7 @@ void UOperableTreeViewWidget::GetNodeData(UOperableTreeNode* node)
 	curData.ChildIndex = childs;
 
 	// add current leaf data
-	new_data.Add(curData);
+	stored_data.Add(curData);
 
 	for (auto leaf : node->GetLeafs())
 	{

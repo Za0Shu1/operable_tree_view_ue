@@ -11,6 +11,20 @@
 DECLARE_LOG_CATEGORY_EXTERN(LogTreeNode, Log, All);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnTreeNodeUpdate);
 
+
+UENUM(BlueprintType)
+enum class EItemType : uint8
+{
+	None,
+	CanvasPanel,
+	Border,
+	Button,
+	CheckBox,
+	Image,
+	TextBlock,
+	UserWidget
+};
+
 USTRUCT(BlueprintType)
 struct FTreeData
 {
@@ -24,7 +38,7 @@ public:
 		int32 level;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "OperableTreeView")
-		UTexture2D* icon;
+		EItemType ItemType;
 
 	UPROPERTY(BlueprintReadWrite, EditAnywhere, Category = "OperableTreeView")
 		FString displayName;
@@ -42,8 +56,8 @@ public:
 		bool bLocked;
 
 public:
-	FTreeData():index(-1),level(-1),icon(nullptr),displayName(""),
-		ChildIndex({}), bIsExpanded(false), bVisible(false), bLocked(false) {}
+	FTreeData():index(-1),level(-1), ItemType(EItemType::None),displayName(""),
+		ChildIndex({}), bIsExpanded(true), bVisible(true), bLocked(false) {}
 
 	void PrintData()
 	{

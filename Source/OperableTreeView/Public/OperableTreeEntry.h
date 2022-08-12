@@ -85,6 +85,10 @@ protected:
 	virtual void NativeOnDragLeave(const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation);
 	virtual bool NativeOnDragOver(const FGeometry& InGeometry, const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation);
 
+	//input event
+	virtual FReply NativeOnKeyDown(const FGeometry& InGeometry, const FKeyEvent& InKeyEvent);
+
+
 	inline void UpdateDropZone(EEntryDropZone NewZoneType)
 	{
 		DropZoneType = NewZoneType;
@@ -102,7 +106,8 @@ private:
 
 	EEntryDropZone DropZoneType;
 
-	void CalcNodeData(UOperableTreeNode* DropNode);
+	void UpdateNodeData(UOperableTreeNode* DropNode);
+	void AddNodeData(EItemType NewItemType);
 	void StoreProperties();
 
 };

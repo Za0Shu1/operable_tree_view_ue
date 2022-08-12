@@ -103,9 +103,9 @@ void UOperableTreeEntry::NativeOnDragDetected(const FGeometry& InGeometry, const
 	{
 		DragVisual->bEnable = CanDragOnto();
 		DragVisual->DisplayText = DisplayName;
+		DragVisual->ItemType = CurrentNode->GetData().ItemType;
 	}
 
-	// todo parse node data
 	temp->Payload = nullptr;
 	temp->Node = CurrentNode;
 
@@ -120,21 +120,37 @@ bool UOperableTreeEntry::NativeOnDrop(const FGeometry& InGeometry, const FDragDr
 	if (DropItemOperation)
 	{
 		UOperableTreeNode* DropNode = DropItemOperation->Node;
-		if (DropNode && CurrentNode)
+		if (DropNode)
 		{
-			// move to self is meaningless
-			if (DropNode != CurrentNode)
+			if (DropNode && CurrentNode)
 			{
-				if (DropZoneType != EEntryDropZone::None)
+				// move to self is meaningless
+				if (DropNode != CurrentNode)
 				{
-					// means can drop
-					CalcNodeData(DropNode);
+					if (DropZoneType != EEntryDropZone::None)
+					{
+						// means can drop
+						UpdateNodeData(DropNode);
+						UpdateDropZone(EEntryDropZone::None);
+						return true;
+					}
+					else
+					{
+						return false;
+					}
+				}
+			}
+		}
+		else
+		{
+			if (DropZoneType != EEntryDropZone::None)
+			{
+				UDragItemVisual* DragVisual = Cast<UDragItemVisual>(DropItemOperation->DefaultDragVisual);
+				if (DragVisual)
+				{
+					AddNodeData(DragVisual->ItemType);
 					UpdateDropZone(EEntryDropZone::None);
 					return true;
-				}
-				else
-				{
-					return false;
 				}
 			}
 		}
@@ -244,6 +260,23 @@ bool UOperableTreeEntry::NativeOnDragOver(const FGeometry& InGeometry, const FDr
 	return Super::NativeOnDragOver(InGeometry,InDragDropEvent,InOperation);
 }
 
+FReply UOperableTreeEntry::NativeOnKeyDown(const FGeometry& InGeometry, const FKeyEvent& InKeyEvent)
+{
+	if (InKeyEvent.GetKey() == EKeys::Delete)
+	{
+		UOperableTreeNode* Parent = CurrentNode->GetParent();
+		if (Parent)
+		{
+			if (Parent->RemoveChild(CurrentNode))
+			{
+				Parent->UpdateTree();
+			}
+		}
+	}
+
+	return Super::NativeOnKeyDown(InGeometry, InKeyEvent);
+}
+
 void UOperableTreeEntry::NativeOnDragCancelled(const FDragDropEvent& InDragDropEvent, UDragDropOperation* InOperation)
 {
 	Super::NativeOnDragCancelled(InDragDropEvent, InOperation);
@@ -261,7 +294,7 @@ void UOperableTreeEntry::NativeOnListItemObjectSet(UObject* ListItemObject)
 	Execute_OnListItemObjectSet(Cast<UObject>(this), ListItemObject);
 }
 
-void UOperableTreeEntry::CalcNodeData(UOperableTreeNode* DropNode)
+void UOperableTreeEntry::UpdateNodeData(UOperableTreeNode* DropNode)
 {
 	if (!DropNode) return;
 
@@ -335,6 +368,69 @@ void UOperableTreeEntry::CalcNodeData(UOperableTreeNode* DropNode)
 			break;
 		}
 			
+		default:
+			break;
+	}
+}
+
+void UOperableTreeEntry::AddNodeData(EItemType NewItemType)
+{
+	UOperableTreeViewWidget* tree = Cast<UOperableTreeViewWidget>(UUserListEntryLibrary::GetOwningListView(this));
+	if (!tree) return;
+
+	// get new data
+	int32 index = -1;
+	FString displayName = "None";
+	tree->AssignItemInfo(index, displayName, NewItemType);
+
+	// create node
+	UOperableTreeNode* newNode = NewObject<UOperableTreeNode>();
+	FTreeData _data;
+	_data.index = index;
+	_data.displayName = displayName;
+	_data.ItemType = NewItemType;
+	newNode->InitData(_data, {});
+
+	// insert data
+	switch (DropZoneType)
+	{
+		case EEntryDropZone::None:
+			break;
+		case EEntryDropZone::AboverItem:
+			{
+				UOperableTreeNode* curParent = CurrentNode->GetParent();
+				if (curParent)
+				{
+					if (curParent->InsertChild(newNode, CurrentNode->GetPre()))
+					{
+						newNode->UpdateTree();
+					}
+					return;
+				}
+				break;
+			}
+		case EEntryDropZone::OntoItem:
+		{
+			if (CurrentNode->AppendChild(newNode))
+			{
+				newNode->UpdateTree();
+				return;
+			}
+			break;
+		}
+		case EEntryDropZone::BelowItem:
+		{
+			UOperableTreeNode* curParent = CurrentNode->GetParent();
+			if (curParent)
+			{
+				if (curParent->InsertChild(newNode, CurrentNode))
+				{
+					newNode->UpdateTree();
+				}
+				return;
+			}
+			break;
+		}
 		default:
 			break;
 	}
