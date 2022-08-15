@@ -3,7 +3,7 @@
 	"Version": 1,
 	"VersionName": "1.0",
 	"FriendlyName": "OperableTreeView",
-	"Description": "An Operable TreeView Plugin.",
+	"Description": "An operable treeview plugin , same like umg designer .",
 	"Category": "Other",
 	"CreatedBy": "liangbochao",
 	"CreatedByURL": "",
@@ -11,7 +11,7 @@
 	"MarketplaceURL": "",
 	"SupportURL": "",
 	"CanContainContent": true,
-	"IsBetaVersion": false,
+	"IsBetaVersion": true,
 	"IsExperimentalVersion": false,
 	"Installed": false,
 	"Modules": [

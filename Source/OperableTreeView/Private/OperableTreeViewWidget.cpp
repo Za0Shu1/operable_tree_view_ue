@@ -9,6 +9,7 @@ UOperableTreeViewWidget::UOperableTreeViewWidget(const FObjectInitializer& Objec
 {
 	this->EntryWidgetClass = nullptr;
 	this->EntrySpacing = 0.f;
+	this->ScrollbarVisiblity = ESlateVisibility::Collapsed;
 	Root = nullptr;
 	this->ObjectType = UOperableTreeNode::StaticClass();// default object
 	this->SetOnGetItemChildren(this, &UOperableTreeViewWidget::OnGetItemChildren);// get children
@@ -17,6 +18,7 @@ UOperableTreeViewWidget::UOperableTreeViewWidget(const FObjectInitializer& Objec
 // Init Root Tree
 void UOperableTreeViewWidget::InitRoot(TArray<FTreeData> data)
 {
+	this->SetScrollbarVisibility(ScrollbarVisiblity);
 	stored_data = data;
 	// Create another tree to store all trees
 	Root = NewObject<UOperableTreeNode>(this);

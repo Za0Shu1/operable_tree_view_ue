@@ -24,6 +24,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = ListView)
 		TSubclassOf<UObject> ObjectType;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = ListView)
+		ESlateVisibility ScrollbarVisiblity;
+
 	UPROPERTY(BlueprintReadOnly, VisibleDefaultsOnly, Category = "Tree Data")
 		UOperableTreeNode* Root;
 
